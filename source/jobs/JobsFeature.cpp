@@ -20,7 +20,7 @@
 #include <aws/iotjobs/UpdateJobExecutionRequest.h>
 #include <aws/iotjobs/UpdateJobExecutionResponse.h>
 #include <aws/iotjobs/UpdateJobExecutionSubscriptionRequest.h>
-#include <wordexp.h>
+//#include <wordexp.h>
 
 #include <thread>
 #include <utility>
@@ -669,7 +669,17 @@ int JobsFeature::init(
     baseNotifier = notifier;
     thingName = config.thingName->c_str();
 
-    wordexp_t word;
+    //TODO:
+    if (!config.jobs.handlerDir.empty())
+    {
+        jobHandlerDir = config.jobs.handlerDir;
+    }
+    else
+    {
+        jobHandlerDir = DEFAULT_JOBS_HANDLER_DIR;
+    }
+
+    /*wordexp_t word;
     if (!config.jobs.handlerDir.empty())
     {
         wordexp(config.jobs.handlerDir.c_str(), &word, 0);
@@ -680,7 +690,7 @@ int JobsFeature::init(
         wordexp(DEFAULT_JOBS_HANDLER_DIR.c_str(), &word, 0);
         jobHandlerDir = word.we_wordv[0];
     }
-    wordfree(&word);
+    wordfree(&word);*/
 
     return 0;
 }

@@ -28,7 +28,7 @@ namespace Aws
                     const int port,
                     const OnConnectionShutdownFn &onConnectionShutdown)
                     : mSharedCrtResourceManager(manager), mRootCa(rootCa.has_value() ? rootCa.value() : ""),
-                      mAccessToken(accessToken), mEndpoint(endpoint), mPort(port),
+                      mAccessToken(accessToken), mEndpoint(endpoint), mPort(static_cast<uint16_t>(port)),
                       mOnConnectionShutdown(onConnectionShutdown)
                 {
                 }

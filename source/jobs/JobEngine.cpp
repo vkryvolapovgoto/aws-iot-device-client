@@ -11,8 +11,8 @@
 #include <memory>
 #include <thread>
 
-#include <sys/wait.h>
-#include <unistd.h>
+//#include <sys/wait.h>
+//#include <unistd.h>
 
 constexpr int PIPE_READ = 0;
 constexpr int PIPE_WRITE = 1;
@@ -26,7 +26,7 @@ using namespace std;
 void JobEngine::processCmdOutput(int fd, bool isStdErr, int childPID)
 {
     array<char, 1024> buffer;
-    unique_ptr<FILE, decltype(&fclose)> pipe(fdopen(fd, "r"), &fclose);
+    unique_ptr<FILE, decltype(&fclose)> pipe(_fdopen(fd, "r"), &fclose);
     if (nullptr == pipe.get())
     {
         LOGM_ERROR(
@@ -38,7 +38,7 @@ void JobEngine::processCmdOutput(int fd, bool isStdErr, int childPID)
     char const *logTag = pidString.c_str();
 
     size_t lineCount = 0;
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr)
     {
         if (lineCount > MAX_LOG_LINES)
         {
@@ -144,7 +144,7 @@ void JobEngine::exec_action(PlainJobDocument::JobAction action, const std::strin
         {
             command = buildCommand(action.handlerInput->path, action.handlerInput->handler, jobHandlerDir);
         }
-        catch (exception &e)
+        catch (exception &)
         {
             if (!action.ignoreStepFailure.value())
             {
@@ -250,6 +250,13 @@ int JobEngine::exec_steps(PlainJobDocument jobDocument, const std::string &jobHa
     return executionStatus;
 }
 
+//TODO: 
+int JobEngine::exec_cmd(std::unique_ptr<const char *[]> & /*argv*/)
+{
+    return 0;
+}
+
+/*
 int JobEngine::exec_cmd(std::unique_ptr<const char *[]> &argv)
 {
     // Establish some file descriptors which we'll use to redirect stdout and
@@ -343,7 +350,13 @@ int JobEngine::exec_cmd(std::unique_ptr<const char *[]> &argv)
     }
     return returnCode;
 }
+*/
 
+int JobEngine::exec_process(std::unique_ptr<const char *[]> & /*argv*/)
+{
+    return 0;
+}
+    /*
 int JobEngine::exec_process(std::unique_ptr<const char *[]> &argv)
 {
     int status = 0;
@@ -387,6 +400,7 @@ int JobEngine::exec_process(std::unique_ptr<const char *[]> &argv)
     }
     return execStatus;
 }
+*/
 
 int JobEngine::exec_handlerScript(const std::string &command, PlainJobDocument::JobAction action)
 {
@@ -506,9 +520,9 @@ int JobEngine::exec_shellCommand(PlainJobDocument::JobAction action)
     return returnCode;
 }
 
-string JobEngine::getReason(int statusCode)
+string JobEngine::getReason(int /*statusCode*/)
 {
-    ostringstream reason;
+    /*ostringstream reason;
     if (WIFEXITED(statusCode))
     {
         reason << "Job exited with status: " << WEXITSTATUS(statusCode);
@@ -526,5 +540,7 @@ string JobEngine::getReason(int statusCode)
         reason << "Job returned with status: " << statusCode;
     }
 
-    return reason.str();
+    return reason.str();*/
+    return "null";
+    //TODO:
 }

@@ -106,7 +106,7 @@ Config config;
  * Currently creates a lockfile to prevent the creation of multiple Device Client processes.
  * @return true if no exception is caught, false otherwise
  */
-bool init(int argc, char *argv[])
+bool init(int /*argc*/, char *argv[])
 {
     try
     {
@@ -287,6 +287,14 @@ namespace Aws
     }     // namespace Iot
 } // namespace Aws
 
+std::atomic_flag atflag = ATOMIC_FLAG_INIT;
+int received_signal;
+void SignalHandler(int signal)
+{
+    received_signal = signal;
+    atflag.test_and_set();
+}
+
 int main(int argc, char *argv[])
 {
     CliArgs cliArgs;
@@ -339,12 +347,14 @@ int main(int argc, char *argv[])
     LOGM_INFO(TAG, "Now running AWS IoT Device Client version %s", DEVICE_CLIENT_VERSION_FULL);
 
     // Register for listening to interrupt signals
-    sigset_t sigset;
+    /*sigset_t sigset;
     memset(&sigset, 0, sizeof(sigset_t));
     int received_signal;
     sigaddset(&sigset, SIGINT);
     sigaddset(&sigset, SIGHUP);
-    sigprocmask(SIG_BLOCK, &sigset, nullptr);
+    sigprocmask(SIG_BLOCK, &sigset, nullptr);*/
+    signal(SIGINT, SignalHandler);//is it safe or Windows? SetConsoleCtrlHandler?
+    signal(SIGTERM, SignalHandler);
 
     auto listener = std::make_shared<DefaultClientBaseNotifier>();
     resourceManager = std::make_shared<SharedCrtResourceManager>();
@@ -612,7 +622,15 @@ int main(int argc, char *argv[])
     // Now allow this thread to sleep until it's interrupted by a signal
     while (true)
     {
-        sigwait(&sigset, &received_signal);
+        while (true)
+        {
+            if (atflag.test_and_set())
+            {
+                break;
+            }
+            atflag.clear();
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
         LOGM_INFO(TAG, "Received signal: (%d)", received_signal);
         switch (received_signal)
         {
@@ -622,9 +640,9 @@ int main(int argc, char *argv[])
             case SIGTERM:
                 shutdown();
                 break;
-            case SIGHUP:
+            /*case SIGHUP:
                 resourceManager->dumpMemTrace();
-                break;
+                break;*/
             default:
                 break;
         }

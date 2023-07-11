@@ -21,8 +21,13 @@ void LogUtil::generateTimestamp(
 {
     auto ms = duration_cast<milliseconds>(t.time_since_epoch()) % 1000;
     auto timer = system_clock::to_time_t(t);
-    struct tm buf;
-    std::tm bt = *gmtime_r(&timer, &buf);
+    std::tm bt;
+    const auto err = gmtime_s(&bt, &timer);
+    if (err)
+    {
+        timeBuffer[0] = 0;
+        return;
+    }
 
     std::ostringstream time_stream;
     time_stream << std::put_time(&bt, TIMESTAMP_FORMAT);

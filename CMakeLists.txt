@@ -78,6 +78,7 @@ file(GLOB LOG_SRC "source/logging/*.cpp")
 file(GLOB UTIL_SRC "source/util/*.cpp")
 
 file(GLOB DC_SRC "source/*.cpp" /
+        "source/*.h"
         "source/*.c" /
         ${CONFIG_SRC}
         ${LOG_SRC}
