@@ -287,6 +287,7 @@ namespace Aws
     }     // namespace Iot
 } // namespace Aws
 
+
 std::atomic_flag atflag = ATOMIC_FLAG_INIT;
 int received_signal;
 void SignalHandler(int signal)
@@ -353,6 +354,7 @@ int main(int argc, char *argv[])
     sigaddset(&sigset, SIGINT);
     sigaddset(&sigset, SIGHUP);
     sigprocmask(SIG_BLOCK, &sigset, nullptr);*/
+
     signal(SIGINT, SignalHandler);//is it safe or Windows? SetConsoleCtrlHandler?
     signal(SIGTERM, SignalHandler);
 

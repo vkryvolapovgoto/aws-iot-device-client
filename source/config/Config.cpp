@@ -23,7 +23,7 @@
 #include "../util/StringUtils.h"
 #include "Version.h"
 
-#include "Port.h"
+#include "../Port.h"
 
 #include <algorithm>
 #include <aws/crt/JsonObject.h>

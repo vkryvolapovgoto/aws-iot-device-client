@@ -4,7 +4,7 @@
 #ifndef AWS_IOT_DEVICE_CLIENT_FILEUTILS_H
 #define AWS_IOT_DEVICE_CLIENT_FILEUTILS_H
 
-#include "Port.h"
+#include "../Port.h"
 #include <aws/common/byte_buf.h>
 #include <stdexcept>
 #include <string>

@@ -70,7 +70,7 @@ bool FileLogger::start(const PlainConfig &config)
     outputStream = unique_ptr<ofstream>(new ofstream(logFile, std::fstream::app));
     if (!outputStream->fail())
     {
-        if (Permissions::LOG_FILE != FileUtils::GetFilePermissions(logFile))
+        /*if (Permissions::LOG_FILE != FileUtils::GetFilePermissions(logFile))
         {
             portchmod(logFile.c_str(), S_IRUSR | S_IWUSR);
             if (Permissions::LOG_FILE != FileUtils::GetFilePermissions(logFile))
@@ -81,7 +81,7 @@ bool FileLogger::start(const PlainConfig &config)
                             logFile.c_str(),
                             Permissions::LOG_FILE);
             }
-        }
+        }*/
 
         thread log_thread(&FileLogger::run, this);
         log_thread.detach();

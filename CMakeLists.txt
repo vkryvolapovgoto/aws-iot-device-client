@@ -19,6 +19,10 @@ option(EXCLUDE_SENSOR_PUBLISH "Builds the device client without the Sensor Publi
 option(EXCLUDE_SENSOR_PUBLISH_SAMPLES "Builds the device client without the Sensor Publish sample servers." OFF)
 option(GIT_VERSION "Updates the version number using the Git commit history" ON)
 
+if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 if (EXCLUDE_JOBS)
     add_definitions(-DEXCLUDE_JOBS)
 endif ()
@@ -78,7 +82,7 @@ file(GLOB LOG_SRC "source/logging/*.cpp")
 file(GLOB UTIL_SRC "source/util/*.cpp")
 
 file(GLOB DC_SRC "source/*.cpp" /
-        "source/*.h"
+        "source/*.h" /
         "source/*.c" /
         ${CONFIG_SRC}
         ${LOG_SRC}
