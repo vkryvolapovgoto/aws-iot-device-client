@@ -14,7 +14,8 @@
 
 #include <limits.h>
 #include <string.h>
-#include <unistd.h>
+//#include <unistd.h>
+#include <windows.h>
 
 using namespace Aws::Iot::DeviceClient::Util;
 using namespace Aws::Iot::DeviceClient::Logging;
@@ -24,15 +25,19 @@ char *OSInterfacePosix::getenv(const char *name)
     return ::getenv(name);
 }
 
-int OSInterfacePosix::setenv(const char *name, const char *value, int overwrite)
+int OSInterfacePosix::setenv(const char *name, const char *value, int /*overwrite*/)
 {
-    return ::setenv(name, value, overwrite);
+    //return ::setenv(name, value, overwrite);
+    return SetEnvironmentVariable(name, value);
 }
+
+#undef getcwd
 
 char *OSInterfacePosix::getcwd(char *buf, size_t size)
 {
-    return ::getcwd(buf, size);
+    return ::_getcwd(buf, static_cast<int>(size));
 }
+
 
 // Sequences of path prefixes used to search for executable filenames.
 constexpr char PATH_ENVIRONMENT[] = "PATH";
@@ -63,15 +68,16 @@ int EnvUtils::AppendCwdToPath() const
     // in the event that getcwd is unable to fit the current working directory
     // in the buffer passed as input.
     std::vector<char> cwd;
-    long path_max = pathconf(".", _PC_PATH_MAX);
-    if (path_max < 1)
-    {
-        cwd.resize(PATH_MAX + 1, '\0'); // Fallback to hardcoded PATH_MAX.
-    }
-    else
-    {
-        cwd.resize(path_max + 1, '\0');
-    }
+    //long path_max = pathconf(".", _PC_PATH_MAX);
+    //if (path_max < 1)
+    //{
+    //    cwd.resize(PATH_MAX + 1, '\0'); // Fallback to hardcoded PATH_MAX.
+    //}
+    //else
+    //{
+    //    cwd.resize(path_max + 1, '\0');
+    //}
+    cwd.resize(MAX_PATH + 1, '\0');
 
     // Limit the number of times we resize the buffer to avoid infinite loop.
     static constexpr const int maxCountResizes = 3;

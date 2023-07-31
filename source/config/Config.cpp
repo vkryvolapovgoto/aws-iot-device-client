@@ -23,6 +23,8 @@
 #include "../util/StringUtils.h"
 #include "Version.h"
 
+#include "../Port.h"
+
 #include <algorithm>
 #include <aws/crt/JsonObject.h>
 #include <aws/io/socket.h>
@@ -289,7 +291,7 @@ bool PlainConfig::LoadFromCliArgs(const CliArgs &cliArgs)
 
 bool PlainConfig::LoadFromEnvironment()
 {
-    const char *memTraceLevelStr = std::getenv("AWS_CRT_MEMORY_TRACING");
+    const char *memTraceLevelStr = portgetenv("AWS_CRT_MEMORY_TRACING");
     if (memTraceLevelStr)
     {
         switch (atoi(memTraceLevelStr))
@@ -307,7 +309,7 @@ bool PlainConfig::LoadFromEnvironment()
         }
     }
 
-    const char *lockFilePathIn = std::getenv("LOCK_FILE_PATH");
+    const char *lockFilePathIn = portgetenv("LOCK_FILE_PATH");
     if (lockFilePathIn)
     {
         string lockFilePathStr = FileUtils::ExtractExpandedPath(lockFilePathIn);
@@ -918,7 +920,7 @@ bool PlainConfig::Tunneling::LoadFromCliArgs(const CliArgs &cliArgs)
 
 bool PlainConfig::Tunneling::LoadFromEnvironment()
 {
-    const char *accessToken = std::getenv("AWSIOT_TUNNEL_ACCESS_TOKEN");
+    const char *accessToken = portgetenv("AWSIOT_TUNNEL_ACCESS_TOKEN");
     if (accessToken)
     {
         destinationAccessToken = accessToken;
@@ -1248,7 +1250,7 @@ bool PlainConfig::FleetProvisioningRuntimeConfig::LoadFromJson(const Crt::JsonVi
     return true;
 }
 
-bool PlainConfig::FleetProvisioningRuntimeConfig::LoadFromCliArgs(const CliArgs &cliArgs)
+bool PlainConfig::FleetProvisioningRuntimeConfig::LoadFromCliArgs(const CliArgs & /*cliArgs*/)
 {
     /*
      * No Command line arguments for Fleet Provisioning Runtime Config
@@ -1684,7 +1686,7 @@ bool PlainConfig::SampleShadow::createShadowOutputFile()
 
         if (FileUtils::StoreValueInFile("", outputPath))
         {
-            chmod(outputPath.c_str(), S_IRUSR | S_IWUSR);
+            portchmod(outputPath.c_str(), S_IRUSR | S_IWUSR);
             if (FileUtils::ValidateFilePermissions(outputPath.c_str(), Permissions::SAMPLE_SHADOW_FILES))
             {
                 shadowOutputFile = outputPath;
@@ -2217,7 +2219,7 @@ bool PlainConfig::SensorPublish::LoadFromJson(const Crt::JsonView &json)
     return true;
 }
 
-bool PlainConfig::SensorPublish::LoadFromCliArgs(const CliArgs &cliArgs)
+bool PlainConfig::SensorPublish::LoadFromCliArgs(const CliArgs & /*cliArgs*/)
 {
     return true;
 }
@@ -3158,7 +3160,7 @@ bool Config::ExportDefaultSetting(const string &file)
     clientConfig.close();
     LOGM_INFO(TAG, "Exported settings to: %s", Sanitize(file).c_str());
 
-    chmod(file.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    portchmod(file.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     FileUtils::ValidateFilePermissions(file.c_str(), Permissions::CONFIG_FILE, false);
     return true;
 }

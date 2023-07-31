@@ -11,10 +11,10 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <thread>
-#include <unistd.h>
+//#include <unistd.h>
 #include <utility>
 
-#include <sys/inotify.h>
+//#include <sys/inotify.h>
 
 using namespace std;
 using namespace Aws;
@@ -35,9 +35,9 @@ constexpr size_t MAX_IOT_CORE_MQTT_MESSAGE_SIZE_BYTES = 128000;
 // Definitions for inode notify
 constexpr size_t MAX_EVENTS = 1000; /* Maximum number of events to process */
 constexpr size_t LEN_NAME = 16;     /* Assuming that the length of the filename won't exceed 16 bytes */
-constexpr size_t EVENT_SIZE = (sizeof(struct inotify_event)); /* size of one event */
-constexpr size_t EVENT_BUFSIZE =
-    (MAX_EVENTS * (EVENT_SIZE + LEN_NAME)); /* size of buffer used to store the data of events */
+//constexpr size_t EVENT_SIZE = (sizeof(struct inotify_event)); /* size of one event */
+//constexpr size_t EVENT_BUFSIZE =
+//    (MAX_EVENTS * (EVENT_SIZE + LEN_NAME)); /* size of buffer used to store the data of events */
 
 const std::string PubSubFeature::DEFAULT_PUBLISH_PAYLOAD = R"({"Hello": "World!"})";
 const std::string PubSubFeature::PUBLISH_TRIGGER_PAYLOAD = "DC-Publish";
@@ -47,7 +47,7 @@ string PubSubFeature::getName()
     return NAME;
 }
 
-bool PubSubFeature::createPubSub(const PlainConfig &config, const std::string &filePath, const aws_byte_buf *payload)
+bool PubSubFeature::createPubSub(const PlainConfig &/*config*/, const std::string &filePath, const aws_byte_buf *payload)
     const
 {
     std::string pubSubFileDir = FileUtils::ExtractParentDirectory(filePath);
@@ -148,6 +148,7 @@ int PubSubFeature::init(
     return AWS_OP_SUCCESS;
 }
 
+/*
 void PubSubFeature::runFileMonitor()
 {
     int len = 0;
@@ -213,6 +214,19 @@ exit:
     inotify_rm_watch(fd, file_wd);
     inotify_rm_watch(fd, dir_wd);
     close(fd);
+}
+*/
+
+void PubSubFeature::runFileMonitor()
+{
+    //TODO: https://learn.microsoft.com/uk-ua/windows/win32/fileio/obtaining-directory-change-notifications?redirectedfrom=MSDN
+
+    while (!needStop.load())
+    {
+        
+        this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
 }
 
 int PubSubFeature::getPublishFileData(aws_byte_buf *buf) const

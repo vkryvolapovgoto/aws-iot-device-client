@@ -7,7 +7,8 @@
 
 #include <csignal>
 #include <stdexcept>
-#include <unistd.h>
+//#include <unistd.h>
+#include <Windows.h>
 
 using namespace std;
 using namespace Aws::Iot::DeviceClient::Util;
@@ -15,6 +16,15 @@ using namespace Aws::Iot::DeviceClient::Logging;
 
 constexpr char LockFile::TAG[];
 constexpr char LockFile::FILE_NAME[];
+
+int portkill(int pid, int signal)
+{
+    HANDLE handy;
+    handy = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
+    if (handy == NULL)
+        return -1;
+    return TerminateProcess(handy, signal) ? 0 : -1;
+}
 
 LockFile::LockFile(const std::string &filedir, const std::string &process, const std::string &thingName) : dir(filedir)
 {
@@ -26,7 +36,7 @@ LockFile::LockFile(const std::string &filedir, const std::string &process, const
         string storedThingName;
         string storedPid;
         if (fileIn >> storedThingName && storedThingName == thingName && fileIn >> storedPid &&
-            !(kill(stoi(storedPid), 0) == -1 && errno == ESRCH))
+            !(portkill(stoi(storedPid), 0) == -1 && errno == ESRCH))
         {
             string processPath = "/proc/" + storedPid + "/cmdline";
             string basename = process.substr(process.find_last_of("/\\") + 1);
@@ -62,7 +72,7 @@ LockFile::LockFile(const std::string &filedir, const std::string &process, const
     }
     else
     {
-        string pid = to_string(getpid());
+        string pid = to_string(_getpid());
         fputs(thingName.c_str(), file);
         fputs(string("\n").c_str(), file);
         fputs(pid.c_str(), file);

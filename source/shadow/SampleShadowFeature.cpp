@@ -11,7 +11,7 @@
 #include <string>
 #include <sys/stat.h>
 #include <thread>
-#include <unistd.h>
+//#include <unistd.h>
 #include <utility>
 
 #include <aws/iotshadow/ErrorResponse.h>
@@ -24,8 +24,8 @@
 #include <aws/iotshadow/UpdateNamedShadowSubscriptionRequest.h>
 #include <aws/iotshadow/UpdateShadowRequest.h>
 #include <aws/iotshadow/UpdateShadowResponse.h>
-
-#include <sys/inotify.h>
+//#include <fileapi.h>
+//#include<sys / inotify.h>
 
 using namespace std;
 using namespace Aws;
@@ -73,7 +73,8 @@ int SampleShadowFeature::init(
     return AWS_OP_SUCCESS;
 }
 
-void SampleShadowFeature::updateNamedShadowAcceptedHandler(Iotshadow::UpdateShadowResponse *response, int ioError) const
+void SampleShadowFeature::updateNamedShadowAcceptedHandler(Iotshadow::UpdateShadowResponse * /*response*/, int ioError)
+    const
 {
     if (ioError)
     {
@@ -198,6 +199,19 @@ void SampleShadowFeature::ackSubscribeToUpdateDelta(int ioError)
 
 void SampleShadowFeature::runFileMonitor()
 {
+    //TODO:
+    while (!needStop.load())
+    {
+        
+
+        this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+}
+
+/*
+void SampleShadowFeature::runFileMonitor()
+{
     ssize_t len = 0;
     string fileDir = FileUtils::ExtractParentDirectory(inputFile.c_str());
     string fileName = inputFile.substr(fileDir.length());
@@ -281,7 +295,7 @@ exit:
     inotify_rm_watch(fd, file_wd);
     inotify_rm_watch(fd, dir_wd);
     close(fd);
-}
+}*/
 
 bool SampleShadowFeature::subscribeToPertinentShadowTopics()
 {

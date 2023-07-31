@@ -3,7 +3,8 @@
 
 #include "ProxyUtils.h"
 #include "../logging/LoggerFactory.h"
-#include <arpa/inet.h>
+//#include <arpa/inet.h>
+#include <Ws2tcpip.h>
 
 using namespace Aws::Iot::DeviceClient::Util;
 using namespace Aws::Iot::DeviceClient::Logging;

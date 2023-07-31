@@ -11,6 +11,13 @@
 #include "util/LockFile.h"
 #include "util/Retry.h"
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+#include "ctrl-c.h"
+
+#include <condition_variable>
+#include <mutex>
+#endif
+
 #if !defined(EXCLUDE_DD)
 
 #    include "devicedefender/DeviceDefenderFeature.h"
@@ -106,7 +113,7 @@ Config config;
  * Currently creates a lockfile to prevent the creation of multiple Device Client processes.
  * @return true if no exception is caught, false otherwise
  */
-bool init(int argc, char *argv[])
+bool init(int /*argc*/, char *argv[])
 {
     try
     {
@@ -339,12 +346,30 @@ int main(int argc, char *argv[])
     LOGM_INFO(TAG, "Now running AWS IoT Device Client version %s", DEVICE_CLIENT_VERSION_FULL);
 
     // Register for listening to interrupt signals
+    int received_signal = 0;
+    #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+    std::mutex wait_lock;
+    std::condition_variable wait_var;
+    unsigned int handler_id = CtrlCLibrary::SetCtrlCHandler([&received_signal, &wait_lock, &wait_var](enum CtrlCLibrary::CtrlSignal sig) -> bool {
+        std::lock_guard<std::mutex> locker(wait_lock);
+        switch (sig) {
+            case CtrlCLibrary::kCtrlCSignal:
+            received_signal = SIGINT;
+        }
+        wait_var.notify_all();
+        return true;
+    });
+    if (handler_id == CtrlCLibrary::kErrorID) {
+        LOGM_ERROR(TAG, "Can't set Windows ctrl+c handler", DC_FATAL_ERROR);
+        deviceClientAbort("Can't set Windows ctrl+c handler");
+    }
+    #elif defined(linux) || defined(__linux) || defined(__linux__)
     sigset_t sigset;
     memset(&sigset, 0, sizeof(sigset_t));
-    int received_signal;
     sigaddset(&sigset, SIGINT);
     sigaddset(&sigset, SIGHUP);
     sigprocmask(SIG_BLOCK, &sigset, nullptr);
+    #endif
 
     auto listener = std::make_shared<DefaultClientBaseNotifier>();
     resourceManager = std::make_shared<SharedCrtResourceManager>();
@@ -612,7 +637,14 @@ int main(int argc, char *argv[])
     // Now allow this thread to sleep until it's interrupted by a signal
     while (true)
     {
+        #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+        {
+            std::unique_lock<std::mutex> locker(wait_lock);
+            wait_var.wait(locker, [&received_signal]() { return received_signal > 0; });
+        }        
+        #elif defined(linux) || defined(__linux) || defined(__linux__)
         sigwait(&sigset, &received_signal);
+        #endif
         LOGM_INFO(TAG, "Received signal: (%d)", received_signal);
         switch (received_signal)
         {
@@ -622,9 +654,11 @@ int main(int argc, char *argv[])
             case SIGTERM:
                 shutdown();
                 break;
+            #if defined(linux) || defined(__linux) || defined(__linux__)
             case SIGHUP:
                 resourceManager->dumpMemTrace();
                 break;
+            #endif
             default:
                 break;
         }

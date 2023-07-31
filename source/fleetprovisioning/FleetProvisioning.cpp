@@ -20,7 +20,7 @@
 #include <chrono>
 #include <string>
 #include <sys/stat.h>
-#include <wordexp.h>
+//#include <wordexp.h>
 
 using namespace std;
 using namespace Aws::Crt;
@@ -94,8 +94,8 @@ bool FleetProvisioning::CreateCertificateAndKey(Iotidentity::IotIdentityClient i
                     TAG, "Stored certificate and private key in %s and %s files", certPath.c_str(), keyPath.c_str());
 
                 LOG_INFO(TAG, "Attempting to set permissions for certificate and private key...");
-                chmod(certPath.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-                chmod(keyPath.c_str(), S_IRUSR | S_IWUSR);
+                portchmod(certPath.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+                portchmod(keyPath.c_str(), S_IRUSR | S_IWUSR);
 
                 if (FileUtils::ValidateFilePermissions(certPath.c_str(), Permissions::PUBLIC_CERT) &&
                     FileUtils::ValidateFilePermissions(keyPath.c_str(), Permissions::PRIVATE_KEY))
@@ -256,7 +256,7 @@ bool FleetProvisioning::CreateCertificateUsingCSR(Iotidentity::IotIdentityClient
                 LOGM_INFO(TAG, "Stored certificate in %s file", certPath.c_str());
 
                 LOG_INFO(TAG, "Attempting to set permissions for certificate...");
-                chmod(certPath.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+                portchmod(certPath.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
                 if (FileUtils::ValidateFilePermissions(certPath.c_str(), Permissions::PUBLIC_CERT))
                 {
                     LOG_INFO(TAG, "Successfully set permissions on provisioned public certificate");
@@ -718,7 +718,7 @@ bool FleetProvisioning::ExportRuntimeConfig(
     clientConfig << formattedMsg;
     LOGM_INFO(TAG, "Exported runtime configurations to: %s", file.c_str());
 
-    chmod(expandedPath.c_str(), S_IRUSR | S_IWUSR | S_IRGRP);
+    portchmod(expandedPath.c_str(), S_IRUSR | S_IWUSR | S_IRGRP);
     FileUtils::ValidateFilePermissions(expandedPath.c_str(), Permissions::RUNTIME_CONFIG_FILE, false);
     return true;
 }

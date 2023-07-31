@@ -151,21 +151,22 @@ bool SharedCrtResourceManager::setupLogging(const PlainConfig &config) const
             return false;
         }
     }
-    else
-    {
-        // Verify the file permissions.
-        auto rcvFilePermissions = FileUtils::GetFilePermissions(logFilePath);
-        if (Permissions::LOG_FILE != rcvFilePermissions)
-        {
-            LOGM_ERROR(
-                TAG,
-                "Incorrect file permissions for SDK log file: %s expected: %d received: %d",
-                Sanitize(logFilePath).c_str(),
-                Permissions::LOG_FILE,
-                rcvFilePermissions);
-            return false;
-        }
-    }
+    //TODO:
+    //else
+    //{
+    //    // Verify the file permissions.
+    //    auto rcvFilePermissions = FileUtils::GetFilePermissions(logFilePath);
+    //    if (Permissions::LOG_FILE != rcvFilePermissions)
+    //    {
+    //        LOGM_ERROR(
+    //            TAG,
+    //            "Incorrect file permissions for SDK log file: %s expected: %d received: %d",
+    //            Sanitize(logFilePath).c_str(),
+    //            Permissions::LOG_FILE,
+    //            rcvFilePermissions);
+    //        return false;
+    //    }
+    //}
 
     // Configure the SDK with the log file path.
     apiHandle->InitializeLogging(config.logConfig.sdkLogLevel, logFilePath.c_str());
@@ -317,7 +318,7 @@ int SharedCrtResourceManager::establishConnection(const PlainConfig &config)
     if (proxyConfig.httpProxyEnabled)
     {
         proxyOptions.HostName = proxyConfig.proxyHost->c_str();
-        proxyOptions.Port = proxyConfig.proxyPort.value();
+        proxyOptions.Port = static_cast<uint16_t>(proxyConfig.proxyPort.value());
 
         LOGM_INFO(
             TAG,
